@@ -191,7 +191,6 @@ class Convert_tables_ee4_mcp {
 	
 	public function members()
 	{
-		
 		$ee4_fields = array();
 		$legacy_fields = array();
 
@@ -309,6 +308,9 @@ class Convert_tables_ee4_mcp {
 	 */
 	public function convert($type)
 	{
+		ini_set('memory_limit', -1);
+		set_time_limit(0);
+		
 		ee()->load->dbforge();
 		ee()->load->dbutil();
 		//ee()->load->library('smartforge');
@@ -349,7 +351,7 @@ class Convert_tables_ee4_mcp {
 	
 		
 		// Convert legacy fields to EE4
-		if (!empty($legacy_fields))
+		if ( ! empty($legacy_fields))
 		{
 			
 			// get field types
@@ -366,7 +368,7 @@ class Convert_tables_ee4_mcp {
 					->where($field_prefix.'field_id', $field_id)
 					->get($legacy_fields_table);
 				
-				if ($results->num_rows() == 0)
+				if ($results->num_rows() === 0)
 				{
 					continue;
 				}
@@ -473,7 +475,7 @@ class Convert_tables_ee4_mcp {
 
 
 		// Convert EE4 fields to legacy
-		if (!empty($ee4_fields))
+		if ( ! empty($ee4_fields))
 		{
 			foreach ($ee4_fields as $field_id)
 			{
@@ -485,7 +487,7 @@ class Convert_tables_ee4_mcp {
 					->where($field_prefix.'field_id', $field_id)
 					->get($legacy_fields_table);
 				
-				if ($results->num_rows() == 0)
+				if ($results->num_rows() === 0)
 				{
 					continue;
 				}
@@ -554,7 +556,7 @@ class Convert_tables_ee4_mcp {
 
 
 					// CREATE COLUMNS
-					if (!empty($after_field))
+					if ( ! empty($after_field))
 					{
 						ee()->dbforge->add_column($legacy_data_table, array($field_id_name => $fields[$field_id_name]), $after_field);
 						if (isset($fields[$field_dt_name]))
@@ -628,7 +630,7 @@ class Convert_tables_ee4_mcp {
 		// clear up old table rows
 		ee()->dbutil->optimize_table($legacy_data_table);
 		
-		if ($success && !$warning)
+		if ($success && ! $warning)
 		{
 			ee('CP/Alert')->makeBanner('convert-tables-ee4')
 			  ->asSuccess()
@@ -672,7 +674,7 @@ class Convert_tables_ee4_mcp {
 
 		foreach($result->result_array() as $row) 
 		{
-			if ($row['ENGINE'] == 'InnoDB')
+			if ($row['ENGINE'] === 'InnoDB')
 			{
 				$innodb_tables[$row['TABLE_NAME']] = $row['TABLE_NAME'];
 			}
@@ -738,8 +740,6 @@ class Convert_tables_ee4_mcp {
 	 */
 	public function convert_tables_engine() 
 	{
-		
-		
 		$myisam_tables = ee()->input->post('myisam_tables');
 		$innodb_tables = ee()->input->post('innodb_tables');
 		
@@ -748,12 +748,12 @@ class Convert_tables_ee4_mcp {
 	
 		
 		// Convert to InnoDB
-		if (!empty($myisam_tables))
+		if ( ! empty($myisam_tables))
 		{
 			
 			foreach($myisam_tables as $table_name) 
 			{
-				if (!empty($table_name))
+				if ( ! empty($table_name))
 				{
 					$success = @ee()->db->query("ALTER TABLE {$table_name} ENGINE=InnoDB");
 					if($success) 
@@ -769,12 +769,12 @@ class Convert_tables_ee4_mcp {
 		}
 		
 		// Convert to MyISAM
-		if (!empty($innodb_tables))
+		if ( ! empty($innodb_tables))
 		{
 			
 			foreach($innodb_tables as $table_name) 
 			{
-				if (!empty($table_name))
+				if ( ! empty($table_name))
 				{
 					$success = @ee()->db->query("ALTER TABLE {$table_name} ENGINE=MyISAM");
 					if($success) 
@@ -790,7 +790,7 @@ class Convert_tables_ee4_mcp {
 		}
 		
 
-		if (count($fail_count)>0)
+		if ($fail_count > 0)
 		{
 			ee('CP/Alert')->makeBanner('convert-tables-ee4')
 			  ->asSuccess()
