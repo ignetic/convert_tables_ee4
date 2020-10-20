@@ -745,12 +745,10 @@ class Convert_tables_ee4_mcp {
 		
 		$success_count = 0;
 		$fail_count = 0;
-	
 		
 		// Convert to InnoDB
 		if ( ! empty($myisam_tables))
 		{
-			
 			foreach($myisam_tables as $table_name) 
 			{
 				if ( ! empty($table_name))
@@ -771,7 +769,6 @@ class Convert_tables_ee4_mcp {
 		// Convert to MyISAM
 		if ( ! empty($innodb_tables))
 		{
-			
 			foreach($innodb_tables as $table_name) 
 			{
 				if ( ! empty($table_name))
@@ -789,8 +786,7 @@ class Convert_tables_ee4_mcp {
 			}
 		}
 		
-
-		if ($fail_count > 0)
+		if ($fail_count === 0)
 		{
 			ee('CP/Alert')->makeBanner('convert-tables-ee4')
 			  ->asSuccess()
@@ -806,7 +802,7 @@ class Convert_tables_ee4_mcp {
 			  ->addToBody(lang('convert_engine_warning_desc')." - Success: $success_count, Fail: $fail_count")
 			  ->defer();
 		}
-		
+
 		ee()->functions->redirect(ee('CP/URL', 'addons/settings/convert_tables_ee4/tables_engine'));
 		
 	}
