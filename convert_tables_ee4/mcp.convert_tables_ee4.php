@@ -56,7 +56,22 @@ class Convert_tables_ee4_mcp {
 		
 		$ee4_fields = array();
 		$legacy_fields = array();
+		$disabled_fields = array();
+		
+		
+		// exclude fluid related fields
+		if (ee()->db->table_exists('fluid_field_data'))
+		{
+			$fluid_data = ee()->db
+				->select('field_id')
+				->group_by('field_id')
+				->get('fluid_field_data')
+				->result_array();
+				
+			$disabled_fields = array_column($fluid_data, 'field_id');
+		}
 
+		// get field info
 		$fields = ee()->db
 			->select('field_id, field_name, field_label, field_type')
 			->order_by('field_id')
@@ -68,8 +83,18 @@ class Convert_tables_ee4_mcp {
 			if (ee()->db->table_exists('channel_data_field_'.$field['field_id']))
 			{
 				$ee4_fields[$field['field_id']] = '['.$field['field_id'].'] '.$field['field_label'].': '.$field['field_name'].' - ['.$field['field_type'].']';
+				if ($field['field_type'] == 'fluid_field')
+				{
+					$disabled_fields[] = $field['field_id'];
+				}
 			}
+			/*
 			else
+			{
+				$legacy_fields[$field['field_id']] = '['.$field['field_id'].'] '.$field['field_label'].': '.$field['field_name'].' - ['.$field['field_type'].']';
+			}
+			*/
+			if (ee()->db->field_exists('field_id_'.$field['field_id'], 'exp_channel_data'))
 			{
 				$legacy_fields[$field['field_id']] = '['.$field['field_id'].'] '.$field['field_label'].': '.$field['field_name'].' - ['.$field['field_type'].']';
 			}
@@ -78,44 +103,42 @@ class Convert_tables_ee4_mcp {
 		// Form definition array
 		$vars['alerts_name'] = $this->class_name;
 		$vars['sections'] = array(
-		  array(
 			array(
-			  'title' => 'legacy_fields',
-			  'desc' => 'legacy_fields_desc',
-			  'fields' => array(
-				'legacy_fields' => array(
-				  'type' => 'checkbox',
-				  'choices' => $legacy_fields,
+				array(
+					'title' => 'legacy_fields',
+					'desc' => 'legacy_fields_desc',
+					'fields' => array(
+						'legacy_fields' => array(
+							'type' => 'checkbox',
+							'choices' => $legacy_fields
+						)
+					)
+				),
+				array(
+					'title' => 'ee4_fields',
+					'desc' => 'ee4_fields_desc',
+					'fields' => array(
+						'ee4_fields' => array(
+						'type' => 'checkbox',
+						'choices' => $ee4_fields,
+							'disabled_choices' => $disabled_fields
+					)
+				  )
 				)
-			  )
-			),
-			array(
-			  'title' => 'ee4_fields',
-			  'desc' => 'ee4_fields_desc',
-			  'fields' => array(
-				'ee4_fields' => array(
-				  'type' => 'checkbox',
-				  'choices' => $ee4_fields,
-				)
-			  )
-			),
-
-		  )
+			)
 		);
 
 		// Final view variables we need to render the form
 		$vars += array(
-		  'base_url' => ee('CP/URL', 'addons/settings/convert_tables_ee4/convert_channels'),
-		  'cp_page_title' => lang('convert_channel_fields'),
-		  'save_btn_text' => 'convert_channel_fields',
-		  'save_btn_text_working' => 'btn_converting'
+			'base_url' => ee('CP/URL', 'addons/settings/convert_tables_ee4/convert_channels'),
+			'cp_page_title' => lang('convert_channel_fields'),
+			'save_btn_text' => 'convert_channel_fields',
+			'save_btn_text_working' => 'btn_converting'
 		);
-
 
 		$this->create_sidebar();
 
 		return ee('View')->make('ee:_shared/form')->render($vars);
-
 	}
 
 
@@ -145,47 +168,43 @@ class Convert_tables_ee4_mcp {
 		// Form definition array
 		$vars['alerts_name'] = $this->class_name;
 		$vars['sections'] = array(
-		  array(
-		  		  
 			array(
-			  'title' => 'legacy_fields',
-			  'desc' => 'legacy_fields_desc',
-			  'fields' => array(
-				'legacy_fields' => array(
-				  'type' => 'checkbox',
-				  'choices' => $legacy_fields,
-				  //'value' => $checked_values
+				array(
+					'title' => 'legacy_fields',
+					'desc' => 'legacy_fields_desc',
+					'fields' => array(
+						'legacy_fields' => array(
+							'type' => 'checkbox',
+							'choices' => $legacy_fields,
+							//'value' => $checked_values
+						)
+					)
+				),
+				array(
+					'title' => 'ee4_fields',
+					'desc' => 'ee4_fields_desc',
+					'fields' => array(
+						'ee4_fields' => array(
+							'type' => 'checkbox',
+							'choices' => $ee4_fields,
+							//'value' => $checked_values
+						)
+					)
 				)
-			  )
-			),
-			array(
-			  'title' => 'ee4_fields',
-			  'desc' => 'ee4_fields_desc',
-			  'fields' => array(
-				'ee4_fields' => array(
-				  'type' => 'checkbox',
-				  'choices' => $ee4_fields,
-				  //'value' => $checked_values
-				)
-			  )
-			),
-
-		  )
+			)
 		);
 
 		// Final view variables we need to render the form
 		$vars += array(
-		  'base_url' => ee('CP/URL', 'addons/settings/convert_tables_ee4/convert_categories'),
-		  'cp_page_title' => lang('convert_category_fields'),
-		  'save_btn_text' => 'convert_category_fields',
-		  'save_btn_text_working' => 'btn_converting'
+			'base_url' => ee('CP/URL', 'addons/settings/convert_tables_ee4/convert_categories'),
+			'cp_page_title' => lang('convert_category_fields'),
+			'save_btn_text' => 'convert_category_fields',
+			'save_btn_text_working' => 'btn_converting'
 		);
-
 
 		$this->create_sidebar();
 
 		return ee('View')->make('ee:_shared/form')->render($vars);
-
 	}
 	
 	
@@ -214,47 +233,43 @@ class Convert_tables_ee4_mcp {
 		// Form definition array
 		$vars['alerts_name'] = $this->class_name;
 		$vars['sections'] = array(
-		  array(
-		  		  
 			array(
-			  'title' => 'legacy_fields',
-			  'desc' => 'legacy_fields_desc',
-			  'fields' => array(
-				'legacy_fields' => array(
-				  'type' => 'checkbox',
-				  'choices' => $legacy_fields,
-				  //'value' => $checked_values
+				array(
+					'title' => 'legacy_fields',
+					'desc' => 'legacy_fields_desc',
+					'fields' => array(
+						'legacy_fields' => array(
+							'type' => 'checkbox',
+							'choices' => $legacy_fields,
+							//'value' => $checked_values
+						)
+					)
+				),
+				array(
+					'title' => 'ee4_fields',
+					'desc' => 'ee4_fields_desc',
+					'fields' => array(
+						'ee4_fields' => array(
+							'type' => 'checkbox',
+							'choices' => $ee4_fields,
+							//'value' => $checked_values
+						)
+					)
 				)
-			  )
-			),
-			array(
-			  'title' => 'ee4_fields',
-			  'desc' => 'ee4_fields_desc',
-			  'fields' => array(
-				'ee4_fields' => array(
-				  'type' => 'checkbox',
-				  'choices' => $ee4_fields,
-				  //'value' => $checked_values
-				)
-			  )
-			),
-
-		  )
+			)
 		);
 
 		// Final view variables we need to render the form
 		$vars += array(
-		  'base_url' => ee('CP/URL', 'addons/settings/convert_tables_ee4/convert_members'),
-		  'cp_page_title' => lang('convert_member_fields'),
-		  'save_btn_text' => 'convert_member_fields',
-		  'save_btn_text_working' => 'btn_converting'
+			'base_url' => ee('CP/URL', 'addons/settings/convert_tables_ee4/convert_members'),
+			'cp_page_title' => lang('convert_member_fields'),
+			'save_btn_text' => 'convert_member_fields',
+			'save_btn_text_working' => 'btn_converting'
 		);
-
 
 		$this->create_sidebar();
 
 		return ee('View')->make('ee:_shared/form')->render($vars);
-
 	}
 	
 
@@ -265,11 +280,9 @@ class Convert_tables_ee4_mcp {
 	 */
 	public function convert_channels()
 	{
-		
 		$this->convert('channels');
-		
-		ee()->functions->redirect(ee('CP/URL', 'addons/settings/convert_tables_ee4'));
 
+		ee()->functions->redirect(ee('CP/URL', 'addons/settings/convert_tables_ee4'));
 	}
 
 	/**
@@ -279,11 +292,9 @@ class Convert_tables_ee4_mcp {
 	 */
 	public function convert_categories()
 	{
-		
 		$this->convert('categories');
-		
+
 		ee()->functions->redirect(ee('CP/URL', 'addons/settings/convert_tables_ee4/categories'));
-		
 	}
 
 	/**
@@ -293,11 +304,9 @@ class Convert_tables_ee4_mcp {
 	 */
 	public function convert_members()
 	{
-		
 		$this->convert('members');
-		
+
 		ee()->functions->redirect(ee('CP/URL', 'addons/settings/convert_tables_ee4/members'));
-		
 	}
 	
 	
@@ -353,7 +362,6 @@ class Convert_tables_ee4_mcp {
 		// Convert legacy fields to EE4
 		if ( ! empty($legacy_fields))
 		{
-			
 			// get field types
 			
 			$legacy_field_types = $this->get_field_types($legacy_data_table);
@@ -375,59 +383,57 @@ class Convert_tables_ee4_mcp {
 				
 				$table_name = $data_table_prefix.$field_id;
 				
-				// check external table exists
-				if (ee()->db->table_exists($table_name))
+				// check external table exists (allow for existing tables e.g. where additional fluid fields have been created)
+				if ( ! ee()->db->table_exists($table_name))
 				{
-					continue;
-				}
+					$field_id_name = $field_prefix.'field_id_'.$field_id;
+					$field_ft_name = $field_prefix.'field_ft_'.$field_id;
+					$field_dt_name = $field_prefix.'field_dt_'.$field_id;
 				
-				$field_id_name = $field_prefix.'field_id_'.$field_id;
-				$field_ft_name = $field_prefix.'field_ft_'.$field_id;
-				$field_dt_name = $field_prefix.'field_dt_'.$field_id;
-			
-				// create table
-				$fields = array(
-					'id' => array(
+					// create table
+					$fields = array(
+						'id' => array(
+							'type'           => 'int',
+							'constraint'     => 10,
+							'null'           => FALSE,
+							'unsigned'       => TRUE,
+							'auto_increment' => TRUE
+						)
+					);
+					
+					$fields[$field_key] = array(
 						'type'           => 'int',
 						'constraint'     => 10,
 						'null'           => FALSE,
 						'unsigned'       => TRUE,
-						'auto_increment' => TRUE
-					)
-				);
-				
-				$fields[$field_key] = array(
-					'type'           => 'int',
-					'constraint'     => 10,
-					'null'           => FALSE,
-					'unsigned'       => TRUE,
-				);
-				
-				
-				$fields[$field_id_name] = array(
-					'type' => (isset($legacy_field_types[$field_id_name]['type']) ? $legacy_field_types[$field_id_name]['type'] : 'text')
-				);
-				if (isset($legacy_field_types[$field_id_name]['max_length']))
-				{
-					$fields[$field_id_name]['constraint'] = $legacy_field_types[$field_id_name]['max_length'];
-				}
-				$fields[$field_ft_name] = array(
-					'type' => 'tinytext'
-				);
-				
-				if (ee()->db->field_exists($field_dt_name, $legacy_data_table))
-				{
-					$fields[$field_dt_name]['type'] = (isset($legacy_field_types[$field_dt_name]['type']) ? $legacy_field_types[$field_dt_name]['type'] : 'tinytext');
-					if (isset($legacy_field_types[$field_dt_name]['max_length'])) 
+					);
+					
+					
+					$fields[$field_id_name] = array(
+						'type' => (isset($legacy_field_types[$field_id_name]['type']) ? $legacy_field_types[$field_id_name]['type'] : 'text')
+					);
+					if (isset($legacy_field_types[$field_id_name]['max_length']))
 					{
-						$fields[$field_dt_name]['constraint'] = $legacy_field_types[$field_dt_name]['max_length'];
+						$fields[$field_id_name]['constraint'] = $legacy_field_types[$field_id_name]['max_length'];
 					}
-				}
+					$fields[$field_ft_name] = array(
+						'type' => 'tinytext'
+					);
+					
+					if (ee()->db->field_exists($field_dt_name, $legacy_data_table))
+					{
+						$fields[$field_dt_name]['type'] = (isset($legacy_field_types[$field_dt_name]['type']) ? $legacy_field_types[$field_dt_name]['type'] : 'tinytext');
+						if (isset($legacy_field_types[$field_dt_name]['max_length'])) 
+						{
+							$fields[$field_dt_name]['constraint'] = $legacy_field_types[$field_dt_name]['max_length'];
+						}
+					}
 
-				ee()->dbforge->add_field($fields);
-				ee()->dbforge->add_key('id', TRUE);	
-				ee()->dbforge->add_key($field_key);	
-				ee()->dbforge->create_table($table_name, TRUE);	
+					ee()->dbforge->add_field($fields);
+					ee()->dbforge->add_key('id', TRUE);	
+					ee()->dbforge->add_key($field_key);	
+					ee()->dbforge->create_table($table_name, TRUE);
+				}
 				
 				// copy table rows
 				$sql = "INSERT INTO ".ee()->db->dbprefix($table_name)." ({$field_key}, {$field_id_name}, {$field_ft_name})
@@ -469,7 +475,6 @@ class Convert_tables_ee4_mcp {
 				}
 				
 				$success = TRUE;
-				
 			}
 		}
 
@@ -527,7 +532,6 @@ class Convert_tables_ee4_mcp {
 
 					
 					// get field types
-					
 					$field_types = $this->get_field_types($table_name);
 
 					// create table
@@ -553,7 +557,6 @@ class Convert_tables_ee4_mcp {
 							$fields[$field_dt_name]['constraint'] = $field_types[$field_dt_name]['max_length'];
 						}
 					}
-
 
 					// CREATE COLUMNS
 					if ( ! empty($after_field))
@@ -591,7 +594,6 @@ class Convert_tables_ee4_mcp {
 							FROM ".ee()->db->dbprefix($table_name)." t
 						ON DUPLICATE KEY UPDATE {$field_id_name}=t.{$field_id_name}, {$field_ft_name}=t.{$field_ft_name}
 					";
-					
 				}
 
 				$query = ee()->db->query($sql);
@@ -620,11 +622,8 @@ class Convert_tables_ee4_mcp {
 					$fail_count++;
 				}
 
-
 				$success = TRUE;
-				
 			}
-			
 		}
 	
 		// clear up old table rows
@@ -648,7 +647,6 @@ class Convert_tables_ee4_mcp {
 		}
 		
 		return TRUE;
-	
 	}
 	
 	
@@ -671,7 +669,6 @@ class Convert_tables_ee4_mcp {
 			WHERE TABLE_SCHEMA = '$db'
 		");
 
-
 		foreach($result->result_array() as $row) 
 		{
 			if ($row['ENGINE'] === 'InnoDB')
@@ -684,7 +681,6 @@ class Convert_tables_ee4_mcp {
 			}
 		}
 	
-		
 		// Form definition array
 		$vars['alerts_name'] = $this->class_name;
 		$vars['sections'] = array(
@@ -715,7 +711,6 @@ class Convert_tables_ee4_mcp {
 
 		  )
 		);
-		
 
 		// Final view variables we need to render the form
 		$vars += array(
@@ -724,7 +719,6 @@ class Convert_tables_ee4_mcp {
 		  'save_btn_text' => 'convert_tables_engine',
 		  'save_btn_text_working' => 'btn_converting'
 		);
-
 
 		$this->create_sidebar();
 
@@ -804,7 +798,6 @@ class Convert_tables_ee4_mcp {
 		}
 
 		ee()->functions->redirect(ee('CP/URL', 'addons/settings/convert_tables_ee4/tables_engine'));
-		
 	}
 	
 	
@@ -849,3 +842,4 @@ class Convert_tables_ee4_mcp {
     }	
 	
 }
+// End of file

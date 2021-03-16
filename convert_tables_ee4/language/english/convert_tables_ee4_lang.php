@@ -6,7 +6,8 @@ $lang = array(
 	'legacy_fields' => '<i class="icon fa fa-sort-amount-desc"></i> Legacy fields',
 	'legacy_fields_desc' => 'Convert legacy fields to native EE4 fields (in to separate tables)',
 	'ee4_fields' => 'EE4 fields',
-	'ee4_fields_desc' => 'Convert EE4 fields back to legacy fields (in to single table)',
+	'ee4_fields_desc' => 'Convert EE4 fields back to legacy fields (in to single table)<br>
+		<span style="color:red">Beware that Fluid fields may be lost when converting back to legacy fields (disabled by default)!</span>',
 	'convert_fields' => 'Convert Fields',
 	'convert_channel_fields' => 'Convert Channel Fields',
 	'convert_category_fields' => 'Convert Category Fields',
