@@ -1,8 +1,8 @@
 Convert Tables EE4 Usage
 ========================
 
-Convert tables to and from single legacy table structure for EE4 and EE5
-This effectively separate the table data into separate tables used in EE4+
+Convert tables to and from single legacy EE3 table structure to EE4 and EE5
+This effectively separates the table data (channel_data) into separate field tables that are used in EE4+
 
 This may also solve a situation where you may have too many table joins. Converting some of the fields back to lagacy format may solve this issue:
 
